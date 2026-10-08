@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Random;
 
+import javax.naming.Context;
+
 // ANSI Color Codes for enhanced terminal output
 class Colors {
     public static final String RESET = "\u001B[0m";
@@ -222,9 +224,13 @@ public class SchedulerSimulation {
                           Colors.RESET + "\n");
         
         // Loop to manage the scheduling of processes
+        int contextSwitchCount = 0;
         while (!processQueue.isEmpty()) {
             // Get the next thread from the queue (FIFO)
             Thread currentThread = processQueue.poll(); // Dequeues the next thread
+            
+            // Count each time a process starts running
+            contextSwitchCount++;
             
             // Print the current process queue (list of process IDs in the queue)
             System.out.println(Colors.BOLD + Colors.MAGENTA + "┌─ Ready Queue " + "─".repeat(65) + Colors.RESET);
@@ -269,7 +275,9 @@ public class SchedulerSimulation {
                     process.runToCompletion(); // Run until the process completes
                 }
             }
+           
         }
+        System.out.println("Total Context Switches: " + contextSwitchCount);
         
         // End of the scheduler simulation
         System.out.println(Colors.BOLD + Colors.BRIGHT_GREEN + 
