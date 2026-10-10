@@ -1,8 +1,10 @@
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.Queue;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.Locale;
 
 import javax.naming.Context;
 
@@ -32,6 +34,8 @@ class Process implements Runnable {
     private int timeQuantum; // Time slice (time quantum) allowed per CPU access (in milliseconds)
     private int remainingTime; // Time left for the process to finish its execution
     private int priority;
+    private long waitingTime = 0;
+    private long readyQueueEntryTime;
 
     // Constructor to initialize the process with name, burst time, and time quantum
     public Process(String name, int burstTime, int timeQuantum) {
@@ -140,8 +144,22 @@ class Process implements Runnable {
     public int getPriority() {
     return priority;
 }
+    public void setReadyQueueEntryTime() {
+    readyQueueEntryTime = System.currentTimeMillis();
+}
+    public long calculateWaitingTime() {
+    return System.currentTimeMillis() - readyQueueEntryTime;
+}
 
-    public int getRemainingTime() {
+    public long getWaitingTime() {
+    return waitingTime;
+}
+
+    public void addWaitingTime(long time) {
+    waitingTime += time;
+}
+
+        public int getRemainingTime() {
         return remainingTime;
     }
 
@@ -228,6 +246,8 @@ public class SchedulerSimulation {
         while (!processQueue.isEmpty()) {
             // Get the next thread from the queue (FIFO)
             Thread currentThread = processQueue.poll(); // Dequeues the next thread
+            Process currentProcess = processMap.get(currentThread);
+            currentProcess.addWaitingTime(currentProcess.calculateWaitingTime());
             
             // Count each time a process starts running
             contextSwitchCount++;
@@ -278,6 +298,17 @@ public class SchedulerSimulation {
            
         }
         System.out.println("Total Context Switches: " + contextSwitchCount);
+
+        System.out.println("\nProcess Name\tBurst Time\tWaiting Time\tTurnaround Time");
+        for (Process p : processMap.values().stream().distinct().toList()) {
+        long waitingTime = p.getWaitingTime();
+        long turnaroundTime = waitingTime + p.getBurstTime();
+
+         System.out.printf("%-12s\t%-10s\t%-12s\t%-15s%n",
+         p.getName(),
+         String.valueOf(p.getBurstTime()),
+         String.valueOf(waitingTime),
+         String.valueOf(turnaroundTime));
         
         // End of the scheduler simulation
         System.out.println(Colors.BOLD + Colors.BRIGHT_GREEN + 
@@ -300,6 +331,7 @@ public class SchedulerSimulation {
         
         // Add the thread to the ready queue
         processQueue.add(thread);
+        process.setReadyQueueEntryTime();
         
         // Map the thread to the process, so we can track the process associated with each thread
         processMap.put(thread, process);
