@@ -4,8 +4,6 @@ import java.util.Queue;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Random;
-import java.util.Locale;
-
 import javax.naming.Context;
 
 // ANSI Color Codes for enhanced terminal output
@@ -170,6 +168,7 @@ class Process implements Runnable {
 }
 
 public class SchedulerSimulation {
+    private static int contextSwitchCount = 0;
     public static void main(String[] args) {
         // ⚠️ IMPORTANT: Put your student ID here to seed the random number generator
         // This makes your output unique to you - DO NOT forget to change this!
@@ -242,7 +241,6 @@ public class SchedulerSimulation {
                           Colors.RESET + "\n");
         
         // Loop to manage the scheduling of processes
-        int contextSwitchCount = 0;
         while (!processQueue.isEmpty()) {
             // Get the next thread from the queue (FIFO)
             Thread currentThread = processQueue.poll(); // Dequeues the next thread
@@ -301,15 +299,16 @@ public class SchedulerSimulation {
 
         System.out.println("\nProcess Name\tBurst Time\tWaiting Time\tTurnaround Time");
         for (Process p : processMap.values().stream().distinct().toList()) {
-        long waitingTime = p.getWaitingTime();
-        long turnaroundTime = waitingTime + p.getBurstTime();
+            long waitingTime = p.getWaitingTime();
+            long turnaroundTime = waitingTime + p.getBurstTime();
 
-         System.out.printf("%-12s\t%-10s\t%-12s\t%-15s%n",
-         p.getName(),
-         String.valueOf(p.getBurstTime()),
-         String.valueOf(waitingTime),
-         String.valueOf(turnaroundTime));
-        
+            System.out.printf("%-12s\t%-10s\t%-12s\t%-15s%n",
+                    p.getName(),
+                    String.valueOf(p.getBurstTime()),
+                    String.valueOf(waitingTime),
+                    String.valueOf(turnaroundTime));
+        }
+
         // End of the scheduler simulation
         System.out.println(Colors.BOLD + Colors.BRIGHT_GREEN + 
                           "╔════════════════════════════════════════════════════════════════════════════════╗" + 
@@ -322,10 +321,9 @@ public class SchedulerSimulation {
                           "╚════════════════════════════════════════════════════════════════════════════════╝" + 
                           Colors.RESET + "\n");
     }
-    
+
     // Method to add a process to the queue and map, while printing a "ready" message
-    public static void addProcessToQueue(Process process, Queue<Thread> processQueue, 
-                                        Map<Thread, Process> processMap) {
+    public static void addProcessToQueue(Process process, Queue<Thread> processQueue,Map<Thread, Process> processMap) {
         // Create a new thread to run the process
         Thread thread = new Thread(process);
         
